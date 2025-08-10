@@ -18,14 +18,16 @@ function App() {
         const userIdFromUrl = params.get('userId');
 
         if (userIdFromUrl) {
-            // If a userId is present in the URL, save it and force a reload.
-            // This is the most robust way to clear old state and re-evaluate auth.
+            // Case 1: Just returned from Slack OAuth.
+            // Save the ID, set authenticated state, and clean the URL.
             localStorage.setItem('userId', userIdFromUrl);
-            window.location.href = '/'; // Force a hard reload to the home page
-            return; // Stop the effect from continuing
+            setIsAuthenticated(true);
+            setIsLoading(false);
+            navigate('/', { replace: true });
+            return; // Stop the effect here.
         }
 
-        // On a normal page load (or after the reload), check auth status.
+        // Case 2: Normal page load or refresh.
         const checkAuthStatus = async () => {
             const userId = localStorage.getItem('userId');
             if (!userId) {
@@ -38,7 +40,13 @@ function App() {
                 const response = await axios.get(`${API_URL}/api/auth/status`, {
                     headers: { 'X-User-ID': userId }
                 });
-                setIsAuthenticated(response.data.isAuthenticated);
+                if (response.data.isAuthenticated) {
+                    setIsAuthenticated(true);
+                } else {
+                    // If backend says the token is invalid, log the user out.
+                    localStorage.removeItem('userId');
+                    setIsAuthenticated(false);
+                }
             } catch (error) {
                 console.error("Error checking auth status:", error);
                 setIsAuthenticated(false);
