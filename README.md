@@ -23,7 +23,7 @@ Follow these steps to get the application running locally.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/Cobalt_Project.git
-cd slack_connect
+cd Cobalt_Project
 ```
 
 ---
