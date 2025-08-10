@@ -5,7 +5,10 @@ import ScheduledMessages from './components/ScheduledMessages.tsx';
 import Navbar from './components/Navbar.tsx';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+// --- FINAL API URL FIX ---
+// Hardcoding the URL for a definitive fix.
+const API_URL = 'https://cobalt-project-backend.onrender.com';
+// -------------------------
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,48 +16,51 @@ function App() {
     const location = useLocation();
     const navigate = useNavigate();
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const userIdFromUrl = params.get('userId');
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const userIdFromUrl = params.get('userId');
 
-    const checkAuthStatus = async (id: string) => {
-        try {
-            const response = await axios.get(`${API_URL}/api/auth/status`, {
-                headers: { 'X-User-ID': id }
-            });
-            if (response.data.isAuthenticated) {
-                setIsAuthenticated(true);
-            } else {
-                localStorage.removeItem('userId');
-                setIsAuthenticated(false);
-            }
-        } catch (error) {
-            console.error("Error checking auth status:", error);
-            localStorage.removeItem('userId');
-            setIsAuthenticated(false);
-        } finally {
+        if (userIdFromUrl) {
+            // Case 1: Just returned from Slack OAuth.
+            // Save the ID, set authenticated state, and clean the URL.
+            localStorage.setItem('userId', userIdFromUrl);
+            setIsAuthenticated(true);
             setIsLoading(false);
-        }
-    };
-
-    if (userIdFromUrl) {
-        // Case 1: Returned from Slack OAuth
-        localStorage.setItem('userId', userIdFromUrl);
-        checkAuthStatus(userIdFromUrl).then(() => {
             navigate('/', { replace: true });
-        });
-    } else {
-        // Case 2: Normal load or refresh
-        const storedUserId = localStorage.getItem('userId');
-        if (!storedUserId) {
-            setIsAuthenticated(false);
-            setIsLoading(false);
-            return;
+            return; // Stop the effect here.
         }
-        checkAuthStatus(storedUserId);
-    }
-}, [location.search, navigate]);
 
+        // Case 2: Normal page load or refresh.
+        const checkAuthStatus = async () => {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                setIsAuthenticated(false);
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const response = await axios.get(`${API_URL}/api/auth/status`, {
+                    headers: { 'X-User-ID': userId }
+                });
+                if (response.data.isAuthenticated) {
+                    setIsAuthenticated(true);
+                } else {
+                    // If backend says the token is invalid, log the user out.
+                    localStorage.removeItem('userId');
+                    setIsAuthenticated(false);
+                }
+            } catch (error) {
+                console.error("Error checking auth status:", error);
+                setIsAuthenticated(false);
+                localStorage.removeItem('userId');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, [location.search, navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
@@ -72,14 +78,7 @@ function App() {
             <main className="container mx-auto p-4 md:p-8">
                 <Routes>
                     <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
-                    <Route
-                        path="/scheduled"
-                        element={
-                            isAuthenticated
-                                ? <ScheduledMessages />
-                                : <Home isAuthenticated={isAuthenticated} />
-                        }
-                    />
+                    <Route path="/scheduled" element={isAuthenticated ? <ScheduledMessages /> : <Home isAuthenticated={isAuthenticated} />} />
                 </Routes>
             </main>
         </div>

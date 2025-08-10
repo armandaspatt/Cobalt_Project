@@ -12,11 +12,12 @@ import { startScheduler } from './scheduler';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// --- UPDATED CORS CONFIGURATION ---
+// --- FINAL CORS CONFIGURATION ---
+// Hardcoding the URL for a definitive fix.
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: "https://cobaltproject.netlify.app",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true, // Allow cookies to be sent
+  credentials: true,
   optionsSuccessStatus: 204
 };
 
@@ -38,6 +39,7 @@ app.get('/auth/slack/callback', async (req, res) => {
     if (!code || typeof code !== 'string') return res.status(400).send('Invalid code');
     try {
         const { userId } = await exchangeCodeForTokens(code as string);
+        // This still uses an environment variable, which is correct.
         res.redirect(`${process.env.FRONTEND_URL}/?userId=${userId}`);
     } catch (error) {
         console.error('OAuth callback error:', error);
@@ -49,7 +51,7 @@ app.get('/api/auth/status', async (req, res) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.json({ isAuthenticated: false });
     const result = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
-    res.json({ isAuthenticated: (result.rowCount ?? 0) > 0 });
+    res.json({ isAuthenticated: result.rowCount?? 0 > 0 });
 });
 app.get('/api/channels', async (req, res) => {
     const userId = req.headers['x-user-id'] as string;

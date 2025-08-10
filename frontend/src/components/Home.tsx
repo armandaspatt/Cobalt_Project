@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // Get the API URL from environment variables.
 // Vite uses `import.meta.env.VITE_...`
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = 'https://cobalt-project-backend.onrender.com';
 
 interface HomeProps {
     isAuthenticated: boolean;
