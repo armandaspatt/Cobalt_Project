@@ -1,0 +1,22 @@
+# Dependencies
+/node_modules
+/frontend/node_modules
+/backend/node_modules
+
+# Build files
+/frontend/dist
+/backend/dist
+
+# Environment variables
+.env
+/backend/.env
+
+# SSL certificates
+/backend/key.pem
+/backend/cert.pem
+
+# Log files
+npm-debug.log*
+
+# Database file
+/backend/database.db
