@@ -5,6 +5,8 @@ import ScheduledMessages from './components/ScheduledMessages.tsx';
 import Navbar from './components/Navbar.tsx';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,15 +33,13 @@ function App() {
                 return;
             }
             try {
-                // Use relative path to go through the proxy
-                const response = await axios.get('/api/auth/status', {
+                const response = await axios.get(`${API_URL}/api/auth/status`, {
                     headers: { 'X-User-ID': userId }
                 });
                 setIsAuthenticated(response.data.isAuthenticated);
             } catch (error) {
                 console.error("Error checking auth status:", error);
                 setIsAuthenticated(false);
-                // Clear invalid user id
                 localStorage.removeItem('userId');
             } finally {
                 setIsLoading(false);
@@ -47,7 +47,7 @@ function App() {
         };
 
         checkAuthStatus();
-    }, []);
+    }, [location]); // <-- THE FIX: Re-run this check when the URL changes.
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
