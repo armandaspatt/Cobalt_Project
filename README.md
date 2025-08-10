@@ -22,7 +22,7 @@ Follow these steps to get the application running locally.
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/slack_connect.git
+git clone https://github.com/YOUR_USERNAME/Cobalt_Project.git
 cd slack_connect
 ```
 
