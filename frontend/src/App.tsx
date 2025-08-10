@@ -14,13 +14,30 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const checkAuthStatus = async (userIdToCheck: string | null) => {
+        const handleAuthFlow = async () => {
+            const params = new URLSearchParams(location.search);
+            const userIdFromUrl = params.get('userId');
+
+            let userIdToCheck: string | null = null;
+
+            if (userIdFromUrl) {
+                // Case 1: Just returned from Slack OAuth
+                localStorage.setItem('userId', userIdFromUrl);
+                userIdToCheck = userIdFromUrl;
+                // Clean the URL immediately
+                navigate('/', { replace: true });
+            } else {
+                // Case 2: Normal page load or refresh
+                userIdToCheck = localStorage.getItem('userId');
+            }
+
             if (!userIdToCheck) {
                 setIsAuthenticated(false);
                 setIsLoading(false);
                 return;
             }
-            setIsLoading(true);
+
+            // Now, check the status with the determined userId
             try {
                 const response = await axios.get(`${API_URL}/api/auth/status`, {
                     headers: { 'X-User-ID': userIdToCheck }
@@ -35,20 +52,8 @@ function App() {
             }
         };
 
-        const params = new URLSearchParams(location.search);
-        const userIdFromUrl = params.get('userId');
-
-        if (userIdFromUrl) {
-            // If a new userId comes from the URL, save it, check it, then clean the URL.
-            localStorage.setItem('userId', userIdFromUrl);
-            checkAuthStatus(userIdFromUrl);
-            navigate('/', { replace: true });
-        } else {
-            // On a normal page load, check if a userId already exists in storage.
-            const userIdFromStorage = localStorage.getItem('userId');
-            checkAuthStatus(userIdFromStorage);
-        }
-    }, [location, navigate]);
+        handleAuthFlow();
+    }, [location.search, navigate]); // Depend on location.search to re-run on redirect
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
