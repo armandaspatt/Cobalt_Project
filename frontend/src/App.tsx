@@ -14,27 +14,16 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const userIdFromUrl = params.get('userId');
-
-        if (userIdFromUrl) {
-            localStorage.setItem('userId', userIdFromUrl);
-            // Clean the URL by removing the query parameter
-            navigate('/', { replace: true });
-        }
-    }, [location, navigate]);
-
-    useEffect(() => {
-        const checkAuthStatus = async () => {
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
+        const checkAuthStatus = async (userIdToCheck: string | null) => {
+            if (!userIdToCheck) {
                 setIsAuthenticated(false);
                 setIsLoading(false);
                 return;
             }
+            setIsLoading(true);
             try {
                 const response = await axios.get(`${API_URL}/api/auth/status`, {
-                    headers: { 'X-User-ID': userId }
+                    headers: { 'X-User-ID': userIdToCheck }
                 });
                 setIsAuthenticated(response.data.isAuthenticated);
             } catch (error) {
@@ -46,8 +35,20 @@ function App() {
             }
         };
 
-        checkAuthStatus();
-    }, [location]); // <-- THE FIX: Re-run this check when the URL changes.
+        const params = new URLSearchParams(location.search);
+        const userIdFromUrl = params.get('userId');
+
+        if (userIdFromUrl) {
+            // If a new userId comes from the URL, save it, check it, then clean the URL.
+            localStorage.setItem('userId', userIdFromUrl);
+            checkAuthStatus(userIdFromUrl);
+            navigate('/', { replace: true });
+        } else {
+            // On a normal page load, check if a userId already exists in storage.
+            const userIdFromStorage = localStorage.getItem('userId');
+            checkAuthStatus(userIdFromStorage);
+        }
+    }, [location, navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
