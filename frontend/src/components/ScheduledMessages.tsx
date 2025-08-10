@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'https://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface ScheduledMessage {
     id: number;
@@ -10,30 +10,36 @@ interface ScheduledMessage {
     send_at: number; // Unix timestamp
 }
 
-const ScheduledMessages = () => {
+interface ScheduledMessagesProps {
+    isAuthenticated: boolean;
+}
+
+const ScheduledMessages = ({ isAuthenticated }: ScheduledMessagesProps) => {
     const [messages, setMessages] = useState<ScheduledMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const fetchScheduledMessages = async () => {
-        setIsLoading(true);
-        try {
-            const userId = localStorage.getItem('userId');
-            const response = await axios.get(`${API_URL}/api/messages/scheduled`, {
-                headers: { 'X-User-ID': userId }
-            });
-            setMessages(response.data);
-        } catch (err) {
-            setError('Failed to fetch scheduled messages.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchScheduledMessages = async () => {
+            if (isAuthenticated) {
+                setIsLoading(true);
+                try {
+                    const userId = localStorage.getItem('userId');
+                    const response = await axios.get(`${API_URL}/api/messages/scheduled`, {
+                        headers: { 'X-User-ID': userId }
+                    });
+                    setMessages(response.data);
+                } catch (err) {
+                    setError('Failed to fetch scheduled messages.');
+                    console.error(err);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+
         fetchScheduledMessages();
-    }, []);
+    }, [isAuthenticated]); // <-- THE FIX: Re-run this effect when auth status changes.
 
     const handleCancelMessage = async (messageId: number) => {
         if (!window.confirm('Are you sure you want to cancel this scheduled message?')) {
@@ -44,8 +50,8 @@ const ScheduledMessages = () => {
             await axios.delete(`${API_URL}/api/messages/scheduled/${messageId}`, {
                 headers: { 'X-User-ID': userId }
             });
-            // Refresh the list after cancelling
-            fetchScheduledMessages();
+            // Refresh the list after cancelling by filtering the state directly
+            setMessages(currentMessages => currentMessages.filter(msg => msg.id !== messageId));
         } catch (err) {
             setError('Failed to cancel the message.');
             console.error(err);

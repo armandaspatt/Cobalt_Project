@@ -5,10 +5,7 @@ import ScheduledMessages from './components/ScheduledMessages.tsx';
 import Navbar from './components/Navbar.tsx';
 import axios from 'axios';
 
-// --- FINAL API URL FIX ---
-// Hardcoding the URL for a definitive fix.
-const API_URL = 'https://cobalt-project-backend.onrender.com';
-// -------------------------
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -78,7 +75,8 @@ function App() {
             <main className="container mx-auto p-4 md:p-8">
                 <Routes>
                     <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
-                    <Route path="/scheduled" element={isAuthenticated ? <ScheduledMessages /> : <Home isAuthenticated={isAuthenticated} />} />
+                    {/* --- THE FIX IS HERE --- */}
+                    <Route path="/scheduled" element={isAuthenticated ? <ScheduledMessages isAuthenticated={isAuthenticated} /> : <Home isAuthenticated={isAuthenticated} />} />
                 </Routes>
             </main>
         </div>
