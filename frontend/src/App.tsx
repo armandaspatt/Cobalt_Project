@@ -14,44 +14,42 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const handleAuthentication = async () => {
-            const params = new URLSearchParams(location.search);
-            const userIdFromUrl = params.get('userId');
-            const userIdFromStorage = localStorage.getItem('userId');
+        const params = new URLSearchParams(location.search);
+        const userIdFromUrl = params.get('userId');
 
-            let finalUserId = userIdFromUrl || userIdFromStorage;
+        if (userIdFromUrl) {
+            // If a userId is present in the URL, save it and force a reload.
+            // This is the most robust way to clear old state and re-evaluate auth.
+            localStorage.setItem('userId', userIdFromUrl);
+            window.location.href = '/'; // Force a hard reload to the home page
+            return; // Stop the effect from continuing
+        }
 
-            if (userIdFromUrl) {
-                // If we get a new ID from the URL, it's the source of truth.
-                localStorage.setItem('userId', userIdFromUrl);
-                // Clean the URL to prevent this block from running on refresh.
-                navigate('/', { replace: true });
-            }
-            
-            if (!finalUserId) {
-                // If no ID from URL or storage, user is not logged in.
+        // On a normal page load (or after the reload), check auth status.
+        const checkAuthStatus = async () => {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
                 setIsAuthenticated(false);
                 setIsLoading(false);
                 return;
             }
 
-            // If we have a user ID, verify it with the backend.
             try {
                 const response = await axios.get(`${API_URL}/api/auth/status`, {
-                    headers: { 'X-User-ID': finalUserId }
+                    headers: { 'X-User-ID': userId }
                 });
                 setIsAuthenticated(response.data.isAuthenticated);
             } catch (error) {
                 console.error("Error checking auth status:", error);
                 setIsAuthenticated(false);
-                localStorage.removeItem('userId'); // Clear invalid ID
+                localStorage.removeItem('userId');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        handleAuthentication();
-    }, [location.search, navigate]); // Rerun whenever the URL query string changes
+        checkAuthStatus();
+    }, [location.search, navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
