@@ -14,46 +14,44 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const handleAuthFlow = async () => {
+        const handleAuthentication = async () => {
             const params = new URLSearchParams(location.search);
             const userIdFromUrl = params.get('userId');
+            const userIdFromStorage = localStorage.getItem('userId');
 
-            let userIdToCheck: string | null = null;
+            let finalUserId = userIdFromUrl || userIdFromStorage;
 
             if (userIdFromUrl) {
-                // Case 1: Just returned from Slack OAuth
+                // If we get a new ID from the URL, it's the source of truth.
                 localStorage.setItem('userId', userIdFromUrl);
-                userIdToCheck = userIdFromUrl;
-                // Clean the URL immediately
+                // Clean the URL to prevent this block from running on refresh.
                 navigate('/', { replace: true });
-            } else {
-                // Case 2: Normal page load or refresh
-                userIdToCheck = localStorage.getItem('userId');
             }
-
-            if (!userIdToCheck) {
+            
+            if (!finalUserId) {
+                // If no ID from URL or storage, user is not logged in.
                 setIsAuthenticated(false);
                 setIsLoading(false);
                 return;
             }
 
-            // Now, check the status with the determined userId
+            // If we have a user ID, verify it with the backend.
             try {
                 const response = await axios.get(`${API_URL}/api/auth/status`, {
-                    headers: { 'X-User-ID': userIdToCheck }
+                    headers: { 'X-User-ID': finalUserId }
                 });
                 setIsAuthenticated(response.data.isAuthenticated);
             } catch (error) {
                 console.error("Error checking auth status:", error);
                 setIsAuthenticated(false);
-                localStorage.removeItem('userId');
+                localStorage.removeItem('userId'); // Clear invalid ID
             } finally {
                 setIsLoading(false);
             }
         };
 
-        handleAuthFlow();
-    }, [location.search, navigate]); // Depend on location.search to re-run on redirect
+        handleAuthentication();
+    }, [location.search, navigate]); // Rerun whenever the URL query string changes
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
