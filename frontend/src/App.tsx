@@ -48,7 +48,18 @@ function App() {
                     setIsAuthenticated(false);
                 }
             } catch (error) {
-                console.error("Error checking auth status:", error);
+                // --- ADDED DETAILED ERROR LOGGING ---
+                if (axios.isAxiosError(error)) {
+                    console.error("Axios error checking auth status:", {
+                        message: error.message,
+                        url: error.config?.url,
+                        status: error.response?.status,
+                        data: error.response?.data,
+                    });
+                } else {
+                    console.error("Generic error checking auth status:", error);
+                }
+                // ------------------------------------
                 setIsAuthenticated(false);
                 localStorage.removeItem('userId');
             } finally {
