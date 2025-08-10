@@ -1,5 +1,3 @@
-// backend/src/index.ts
-
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
@@ -14,7 +12,17 @@ import { startScheduler } from './scheduler';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+// --- UPDATED CORS CONFIGURATION ---
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Allow cookies to be sent
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+// ------------------------------------
+
 app.use(express.json());
 
 // ... (all your API routes remain the same) ...
