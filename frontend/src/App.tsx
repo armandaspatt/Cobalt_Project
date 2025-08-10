@@ -13,47 +13,48 @@ function App() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const userIdFromUrl = params.get('userId');
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const userIdFromUrl = params.get('userId');
 
-        const checkAuthStatus = async (id: string) => {
-            try {
-                const response = await axios.get(`${API_URL}/api/auth/status`, {
-                    headers: { 'X-User-ID': id }
-                });
-                setIsAuthenticated(response.data.isAuthenticated);
-                if (!response.data.isAuthenticated) {
-                    localStorage.removeItem('userId');
-                }
-            } catch (error) {
-                console.error("Error checking auth status:", error);
-                setIsAuthenticated(false);
+    const checkAuthStatus = async (id: string) => {
+        try {
+            const response = await axios.get(`${API_URL}/api/auth/status`, {
+                headers: { 'X-User-ID': id }
+            });
+            if (response.data.isAuthenticated) {
+                setIsAuthenticated(true);
+            } else {
                 localStorage.removeItem('userId');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (userIdFromUrl) {
-            // Save to localStorage
-            localStorage.setItem('userId', userIdFromUrl);
-
-            // Immediately check auth without reloading
-            checkAuthStatus(userIdFromUrl);
-
-            // Remove ?userId=... from URL without page reload
-            navigate('/', { replace: true });
-        } else {
-            const storedUserId = localStorage.getItem('userId');
-            if (!storedUserId) {
                 setIsAuthenticated(false);
-                setIsLoading(false);
-                return;
             }
-            checkAuthStatus(storedUserId);
+        } catch (error) {
+            console.error("Error checking auth status:", error);
+            localStorage.removeItem('userId');
+            setIsAuthenticated(false);
+        } finally {
+            setIsLoading(false);
         }
-    }, [location.search, navigate]);
+    };
+
+    if (userIdFromUrl) {
+        // Case 1: Returned from Slack OAuth
+        localStorage.setItem('userId', userIdFromUrl);
+        checkAuthStatus(userIdFromUrl).then(() => {
+            navigate('/', { replace: true });
+        });
+    } else {
+        // Case 2: Normal load or refresh
+        const storedUserId = localStorage.getItem('userId');
+        if (!storedUserId) {
+            setIsAuthenticated(false);
+            setIsLoading(false);
+            return;
+        }
+        checkAuthStatus(storedUserId);
+    }
+}, [location.search, navigate]);
+
 
     const handleLogout = () => {
         localStorage.removeItem('userId');
