@@ -10,7 +10,7 @@ This project demonstrates a secure **OAuth 2.0** flow, token management with ref
 * **Frontend:** React (TypeScript)
 * **Backend:** Node.js (Express, TypeScript)
 * **Database:** PostgreSQL
-* **Deployment:** Frontend: NEtlify, Backend: Render
+* **Deployment:** Frontend- NEtlify, Backend- Render
 
 ---
 ### Deployed site LINK:
