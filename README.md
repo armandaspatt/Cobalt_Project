@@ -10,7 +10,11 @@ This project demonstrates a secure **OAuth 2.0** flow, token management with ref
 * **Frontend:** React (TypeScript)
 * **Backend:** Node.js (Express, TypeScript)
 * **Database:** PostgreSQL
+* **Deployment:** Frontend- NEtlify, Backend- Render
 
+---
+# Deployed site LINK:
+[Click Here](https://cobaltproject.netlify.app/)
 ---
 
 ## Detailed Setup Instructions
@@ -101,11 +105,6 @@ cd backend
 ##### Generate SSL Certificate:
 
 ```bash
-# macOS/Linux
-openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem \
--sha256 -days 365 -nodes \
--subj "/C=XX/ST=State/L=City/O=Organization/OU=OrgUnit/CN=localhost"
-
 # Windows (Git Bash)
 MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem \
 -sha256 -days 365 -nodes \
@@ -126,7 +125,7 @@ DATABASE_URL=postgresql://my_app_user:your_secure_password@localhost:5432/slack_
 ##### Install Dependencies & Run:
 
 ```bash
-npm install
+npm i
 npm run dev
 ```
 
@@ -138,7 +137,7 @@ Backend runs at: **[https://localhost:8080](https://localhost:8080)**
 
 ```bash
 cd frontend
-npm install
+npm i
 npm run dev
 ```
 
@@ -157,9 +156,9 @@ If prompted with a security warning for backend HTTPS, click **Advanced → Proc
 
 ### **Frontend**
 
-* React SPA built with TypeScript & Vite
+* React Single Page Application built with TypeScript & Vite
 * Handles UI and state management
-* Uses Vite proxy to bypass CORS and HTTPS issues during development
+* Uses Vite proxy to bypass HTTPS issues during development
 
 ### **Backend**
 
@@ -191,7 +190,6 @@ If prompted with a security warning for backend HTTPS, click **Advanced → Proc
 ##  Scheduled Task Handling
 
 * **Scheduling**: Stores message, channel ID, and `send_at` time in DB
-* **Cron Job**: Runs every minute via `node-cron`
 * **Execution**: Sends due messages and marks them as `sent`
 
 ---
@@ -201,16 +199,30 @@ If prompted with a security warning for backend HTTPS, click **Advanced → Proc
 ### **1. Local HTTPS for OAuth Redirect**
 
 * **Problem:** Slack requires HTTPS redirect URIs, blocking local HTTP dev
-* **Solution:** Generated self-signed SSL cert using OpenSSL, ran backend over HTTPS without ngrok
+  
+* **Solution:** Generated self-signed SSL certificate using OpenSSL, ran backend over HTTPS without ngrok
 
-### **2. CORS & Self-Signed Certificate Errors**
+### **2. Self-Signed Certificate Errors**
 
-* **Problem:** Browser blocked API calls due to CORS & untrusted cert
+* **Problem:** Browser blocked API calls due to untrusted certificate
+  
 * **Solution:** Vite proxy forwards `/api` calls to backend over HTTPS
 
 ### **3. Fetching User-Specific Data**
 
 * **Problem:** Channels list empty because backend used Bot Token instead of User Token
+  
 * **Solution:** Extracted `authed_user.access_token` from OAuth response & requested proper user scopes
+
+### **4. Changed the package.json to always install the env dependencies**
+
+### **5. Home Page -----> Autentication Page ------> Home Page loop**
+
+* **Problem:** The deployed site stuck in the loop of going from home page to the slack api authentication page
+  then back to the home page due to race condition. The redirection to the site and the user authentication was
+  happening simultaneously.
+
+* **Solution:** Wrote a robust app code code to always wait for user authentication first then redirect to the site URL.
+  Then made sure the issue isn't being caused by something else like mismatch in env variables.
 
 ---
