@@ -214,9 +214,10 @@ If prompted with a security warning for backend HTTPS, click **Advanced → Proc
   
 * **Solution:** Extracted `authed_user.access_token` from OAuth response & requested proper user scopes
 
-### **4. Changed the packahe.json to aslways install the env dependencies
+### **4. Changed the package.json to always install the env dependencies**
 
-### **5. Home Page -----> Autentication Page ------> Home Page loop
+### **5. Home Page -----> Autentication Page ------> Home Page loop**
+
 * **Problem:** The deployed site stuck in the loop of going from home page to the slack api authentication page
   then back to the home page due to race condition. The redirection to the site and the user authentication was
   happening simultaneously.
