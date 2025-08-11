@@ -70,6 +70,8 @@ GRANT ALL PRIVILEGES ON DATABASE slack_connect TO my_app_user;
 
 #### **Slack App Configuration**
 
+#3 [Use this Slack DemoApp I made](https://slack.com/oauth/v2/authorize?client_id=9341740205457.9355073540064&scope=chat:write,channels:read,groups:read,im:read,mpim:read,users:read&user_scope=channels:read,chat:write,im:read,mpim:read,groups:read,channels:write)
+# **OR**
 1. Go to [Slack API Apps](https://api.slack.com/apps) → Create new app **"From scratch"**
 
 2. **Add Scopes** under **OAuth & Permissions**:
