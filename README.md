@@ -12,6 +12,16 @@ This project demonstrates a secure **OAuth 2.0** flow, token management with ref
 * **Database:** PostgreSQL
 * **Deployment:** Frontend- NEtlify, Backend- Render
 
+![Homepage](app_screenshots/homepage.png)
+
+![Slack Auth](app_screenshots/slack_auth.png)
+
+![Channels Dropdown](app_screenshots/channels_dropdown.png)
+
+![Message Scheduler](app_screenshots/message_scheduler.png)
+
+![Scheduled Message List](app_screenshots/scheduled_list.png)
+
 ---
 # Deployed site LINK:
 [Click Here](https://cobaltproject.netlify.app/)
