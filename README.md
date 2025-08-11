@@ -13,9 +13,9 @@ This project demonstrates a secure **OAuth 2.0** flow, token management with ref
 * **Deployment:** Frontend- NEtlify, Backend- Render
 
 ---
-### Deployed site LINK:
+# Deployed site LINK:
 [Click Here](https://cobaltproject.netlify.app/)
-
+---
 
 ## Detailed Setup Instructions
 
