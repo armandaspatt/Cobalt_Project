@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import https from 'https';
-import http from 'http'; // Import the http module
+import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { exchangeCodeForTokens, getSlackWebClient } from './slack';
@@ -12,8 +12,6 @@ import { startScheduler } from './scheduler';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// --- FINAL CORS CONFIGURATION ---
-// Hardcoding the URL for a definitive fix.
 const corsOptions = {
   origin: "https://cobaltproject.netlify.app",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -22,12 +20,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// ------------------------------------
 
 app.use(express.json());
 
-// ... (all your API routes remain the same) ...
-// --- OAuth Routes ---
 app.get('/auth/slack', (req, res) => {
     const botScopes = ['chat:write', 'channels:read', 'groups:read', 'mpim:read', 'im:read', 'users:read'].join(' ');
     const userScopes = ['chat:write', 'channels:read', 'groups:read', 'im:read', 'mpim:read'].join(',');
@@ -39,14 +34,12 @@ app.get('/auth/slack/callback', async (req, res) => {
     if (!code || typeof code !== 'string') return res.status(400).send('Invalid code');
     try {
         const { userId } = await exchangeCodeForTokens(code as string);
-        // This still uses an environment variable, which is correct.
         res.redirect(`${process.env.FRONTEND_URL}/?userId=${userId}`);
     } catch (error) {
         console.error('OAuth callback error:', error);
         res.status(500).send('Authentication failed');
     }
 });
-// --- API Routes ---
 app.get('/api/auth/status', async (req, res) => {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) return res.json({ isAuthenticated: false });
@@ -124,12 +117,10 @@ app.delete('/api/messages/scheduled/:id', async (req, res) => {
     }
 });
 
-// Start the server
 const startServer = async () => {
     try {
         await initializeDb();
 
-        // Use HTTPS for local development, HTTP for production
         if (process.env.NODE_ENV === 'production') {
             http.createServer(app).listen(PORT, () => {
                 console.log(`Backend server running on http://localhost:${PORT}`);

@@ -3,8 +3,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import axios from 'axios';
 
-// Get the API URL from environment variables.
-// Vite uses `import.meta.env.VITE_...`
 const API_URL = 'https://cobalt-project-backend.onrender.com';
 
 interface HomeProps {
@@ -89,7 +87,6 @@ const Home = ({ isAuthenticated }: HomeProps) => {
     }
 
     return (
-        // ... (rest of the component is the same)
         <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold mb-6">Send a Message</h2>
             {status.message && (<div className={`p-3 mb-4 rounded ${status.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{status.message}</div>)}

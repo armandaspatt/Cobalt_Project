@@ -6,7 +6,6 @@ const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID;
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
 const SLACK_REDIRECT_URI = process.env.SLACK_REDIRECT_URI;
 
-// Exchanges the OAuth code for an access token and refresh token
 export async function exchangeCodeForTokens(code: string) {
     const response = await axios.post('https://slack.com/api/oauth.v2.access', null, {
         params: {
@@ -23,17 +22,15 @@ export async function exchangeCodeForTokens(code: string) {
     
     const { authed_user } = response.data;
 
-    // IMPORTANT: Use the user token (xoxp), not the bot token (xoxb)
-    // The user token is required to act on behalf of the user (e.g., get their channel list).
     const userAccessToken = authed_user.access_token;
     if (!userAccessToken) {
         throw new Error('User access token not found in Slack response.');
     }
 
-    // Note: Refresh tokens and expiration are typically associated with the user token.
+
     const { refresh_token, expires_in } = authed_user;
 
-    // If expires_in is not provided, default to a long time (e.g., 12 hours) to prevent NaN error.
+
     const expiresInSeconds = expires_in || 43200; 
     const token_expires_at = Date.now() + expiresInSeconds * 1000;
 
@@ -46,7 +43,7 @@ export async function exchangeCodeForTokens(code: string) {
             token_expires_at = EXCLUDED.token_expires_at;
     `;
     
-    // If refresh_token is not provided by Slack, store NULL in the database.
+
     const finalRefreshToken = refresh_token || null;
 
     await pool.query(query, [authed_user.id, userAccessToken, finalRefreshToken, token_expires_at, authed_user.id]);
@@ -54,7 +51,6 @@ export async function exchangeCodeForTokens(code: string) {
     return { userId: authed_user.id };
 }
 
-// Gets a WebClient instance, refreshing the token if necessary
 export async function getSlackWebClient(userId: string): Promise<WebClient> {
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
 
@@ -63,8 +59,7 @@ export async function getSlackWebClient(userId: string): Promise<WebClient> {
     }
     const user = userResult.rows[0];
 
-    // Check if the token is expired or close to expiring (e.g., within 5 minutes)
-    // and if a refresh token exists.
+
     if (user.refresh_token && Date.now() >= user.token_expires_at - 5 * 60 * 1000) {
         console.log('Access token expired, refreshing...');
         try {
@@ -94,7 +89,6 @@ export async function getSlackWebClient(userId: string): Promise<WebClient> {
 
         } catch (error) {
             console.error('Error refreshing token:', error);
-            // If refresh fails, we might need to prompt for re-authentication
             throw new Error('Could not refresh token. Please re-authenticate.');
         }
     }

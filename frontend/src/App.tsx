@@ -18,16 +18,13 @@ function App() {
         const userIdFromUrl = params.get('userId');
 
         if (userIdFromUrl) {
-            // Case 1: Just returned from Slack OAuth.
-            // Save the ID, set authenticated state, and clean the URL.
+
             localStorage.setItem('userId', userIdFromUrl);
             setIsAuthenticated(true);
             setIsLoading(false);
             navigate('/', { replace: true });
-            return; // Stop the effect here.
+            return; 
         }
-
-        // Case 2: Normal page load or refresh.
         const checkAuthStatus = async () => {
             const userId = localStorage.getItem('userId');
             if (!userId) {
@@ -43,7 +40,6 @@ function App() {
                 if (response.data.isAuthenticated) {
                     setIsAuthenticated(true);
                 } else {
-                    // If backend says the token is invalid, log the user out.
                     localStorage.removeItem('userId');
                     setIsAuthenticated(false);
                 }
@@ -75,7 +71,6 @@ function App() {
             <main className="container mx-auto p-4 md:p-8">
                 <Routes>
                     <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
-                    {/* --- THE FIX IS HERE --- */}
                     <Route path="/scheduled" element={isAuthenticated ? <ScheduledMessages isAuthenticated={isAuthenticated} /> : <Home isAuthenticated={isAuthenticated} />} />
                 </Routes>
             </main>

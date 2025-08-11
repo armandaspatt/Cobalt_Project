@@ -7,7 +7,7 @@ interface ScheduledMessage {
     id: number;
     channel_id: string;
     text: string;
-    send_at: number; // Unix timestamp
+    send_at: number;
 }
 
 interface ScheduledMessagesProps {
@@ -39,7 +39,7 @@ const ScheduledMessages = ({ isAuthenticated }: ScheduledMessagesProps) => {
         };
 
         fetchScheduledMessages();
-    }, [isAuthenticated]); // <-- THE FIX: Re-run this effect when auth status changes.
+    }, [isAuthenticated]);
 
     const handleCancelMessage = async (messageId: number) => {
         if (!window.confirm('Are you sure you want to cancel this scheduled message?')) {
@@ -50,7 +50,6 @@ const ScheduledMessages = ({ isAuthenticated }: ScheduledMessagesProps) => {
             await axios.delete(`${API_URL}/api/messages/scheduled/${messageId}`, {
                 headers: { 'X-User-ID': userId }
             });
-            // Refresh the list after cancelling by filtering the state directly
             setMessages(currentMessages => currentMessages.filter(msg => msg.id !== messageId));
         } catch (err) {
             setError('Failed to cancel the message.');
